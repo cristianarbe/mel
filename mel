@@ -1,0 +1,75 @@
+#!/bin/bash
+FILE="$1"
+SWAP="${1}.swp"
+
+is_number(){
+  case "${1}" in
+    ''|*[!0-9]*) printf false ;;
+    *) printf true ;;
+  esac
+}
+
+close(){
+	rm ${SWAP}
+	trap 2
+}
+
+# 1 file 2 param
+append(){
+  rm ${SWAP}
+  [[ $2 != "0" ]] && sed -n "1,${2}p" ${SWAP}.bkp >> ${SWAP}
+  command cat >> ${SWAP}
+  sed -n "$(($2+1)),\$p" ${SWAP}.bkp >> ${SWAP}
+}
+
+check_action(){
+  local action=$1
+  local param=$2
+
+  [[ "${action}" == c* || $action == G || $action == d* || $action == a* ]] \
+    && cp "${SWAP}" "${SWAP}.bkp"
+  [[ "${param}" != "" && $(($param)) == "0" && $action != '/'* \
+    && $action != wq && $action != '!'*  && $action != ["e"[:space:]*] ]] && printf "0"
+}
+
+do_action(){
+  local action=$1
+  local param=$2
+
+  case $action in
+    p) cat -n ${SWAP} && printf "EOF\n";;
+    p*) sed -n "${param}p" "${SWAP}";;
+    /*) [[ $param != "" ]] && grep -in ${param} ${SWAP};;
+    c*)
+      sed -n "${param}p" "${SWAP}"
+      append "${SWAP}" "${param}"
+      sed -i "${param}d" ${SWAP}
+      ;;
+	!*) "${param}";;
+    I) append "${SWAP}" 0;;
+    A) command cat >> ${SWAP};;
+    d*) sed -i "${param}d" ${SWAP};;
+    a*) append "${SWAP}" "${param}";;
+    w) cp ${SWAP} ${FILE};;
+    u) cp ${SWAP}.bkp ${SWAP};;
+	e*) close && exec mel ${param};;
+    *) printf '?\n';;
+  esac
+}
+
+main(){
+  [[ -z $1 ]] && exit 0
+  [[ -f $HOME/.melrc ]] && source $HOME/.melrc
+  touch "${SWAP}"
+  [[ -f "${FILE}" ]] && cp "${FILE}" "${SWAP}"
+  trap '' 2
+
+  while true; do
+    read -p ":" action
+    local param=$(printf "${action}" | cut -c 2-)
+	[[ $(check_action $action $param) == "0" ]] && printf "?\n" && continue
+    do_action "${action}" ${param}
+  done
+}
+
+main "$@"
