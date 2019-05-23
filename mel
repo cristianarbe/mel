@@ -1,14 +1,8 @@
 #!/bin/bash
 
-is_number(){
-  case "${1}" in
-    ''|*[!0-9]*) printf false ;;
-    *) printf true ;;
-  esac
-}
-
 close(){
-	rm "${SWAP}"
+	[[ -f ${SWAP} ]] && rm "${SWAP}"
+	[[ -f ${SWAP}.bkp ]] && rm "${SWAP}".bkp
 	trap 2
 }
 
@@ -22,10 +16,10 @@ append(){
 
 check_action(){
   local action="$1"
-  local param=$2
+  local param="$2"
 
-  [[ "${action}" == c* || "$action" == G || "$action" == d* || "$action" == a* ]] \
-    && cp "${SWAP}" "${SWAP}.bkp"
+  [[ "${action}" == c* || "$action" == I || "$action" == A || "$action" == d* \
+		  || "$action" == a* ]] && cp "${SWAP}" "${SWAP}.bkp"
   [[ "$action" == "file" ]] && exit
   [[ "${param}" == "" ]] && exit
   [[ $(echo "$action" | wc -w) == "2" ]] && exit
@@ -56,32 +50,29 @@ do_action(){
     a*) append "${SWAP}" "${param}";;
     w) cp "${SWAP}" "${FILE}";;
     u) cp "${SWAP}.bkp" "${SWAP}";;
-	e*) edit_file "${param}";;
+	e*) close && edit_file "${param}";;
 	f) echo "$(pwd)/$FILE";;
     *) printf '?\n';;
   esac
 }
 
 function edit_file(){
+  trap '' 2
   FILE="${1/ /}"
-  [[ -z "$FILE" ]] && exit 0
-  SWAP="${1}.swp"
-  touch "${SWAP}"
-  [[ -f "${FILE}" ]] && cp "${FILE}" "${SWAP}"
+  [[ -z "$FILE" ]] && close && exit 0
+  SWAP="${FILE}.swp"
+  [[ -f "${FILE}" ]] && cp "${FILE}" "${SWAP}" || touch "${SWAP}"
 }
-
 
 main(){
   [[ -f $HOME/.melrc ]] && source "$HOME/.melrc"
-  trap '' 2
   
   edit_file "$@"
 
   while true; do
     read -rp ":" action
 	local param
-    param=${action/^./}
-	echo $param
+    param=${action:1}
 	[[ $(check_action "$action" "$param") == "0" ]] && printf "?\n" && continue
     do_action "${action}" "${param}"
   done
