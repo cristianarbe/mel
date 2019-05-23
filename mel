@@ -68,8 +68,8 @@ main(){
 
   while true; do
     read -rp ":" action
-    param=$(printf "%s" "${action}" | cut -c 2-)
     local param
+    param=$(printf "%s" "${action}" | cut -c 2-)
 	[[ $(check_action "$action" "$param") == "0" ]] && printf "?\n" && continue
     do_action "${action}" "${param}"
   done
