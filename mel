@@ -1,80 +1,72 @@
 #!/bin/bash
 
-close(){
- [[ -f ${SWAP} ]] && rm "${SWAP}"
- [[ -f ${SWAP}.bkp ]] && rm "${SWAP}".bkp
- trap 2
+close() {
+  [[ -f ${SWAP} ]] && rm "${SWAP}"
+  [[ -f ${SWAP}.bkp ]] && rm "${SWAP}".bkp
+  trap 2
 }
 
-append(){
+append() {
   rm "${SWAP}"
-  [[ $2 != "0" ]] && sed -n "1,${2}p" "${SWAP}.bkp" >> "${SWAP}"
-  command cat >> "${SWAP}"
-  sed -n "$(($2+1)),\$p" "${SWAP}.bkp" >> "${SWAP}"
+  [[ $2 != "0" ]] && sed -n "1,${2}p" "${SWAP}.bkp" >>"${SWAP}"
+  command cat >>"${SWAP}"
+  sed -n "$(($2 + 1)),\$p" "${SWAP}.bkp" >>"${SWAP}"
 }
 
-check_action(){
+check_action() {
   local action="$1"
   local param="$2"
 
-  [[ "${action}" == c* || "$action" == I || "$action" == A || "$action" == d* \
-    || "$action" == a* ]] && cp "${SWAP}" "${SWAP}.bkp"
+  [[ "${action}" == c* || "$action" == I || "$action" == A || "$action" == d* || "$action" == a* ]] && cp "${SWAP}" "${SWAP}.bkp"
   [[ "$action" == "file" ]] && exit
   [[ "${param}" == "" ]] && exit
   [[ $(echo "$action" | wc -w) == "2" ]] && exit
   [[ "$action" == '/'* ]] && exit
   [[ "$action" == "wq" ]] && exit
   [[ "$action" == '!'* ]] && exit
-  [ "$param" -eq "$param" ] 2> /dev/null && exit
+  [ "$param" -eq "$param" ] 2>/dev/null && exit
   printf "0"
 }
 
-do_action(){
+do_action() {
   local action=$1
   local param=$2
 
   case "$action" in
-    p) cat -n "${SWAP}" && printf "EOF\n";;
-    p*) sed -n "${param}p" "${SWAP}";;
-    /*) [[ $param != "" ]] && grep -in "${param}" "${SWAP}";;
-    c*)
-      sed -n "${param}p" "${SWAP}"
-      append "${SWAP}" "${param}"
-      sed -i "${param}d" "${SWAP}"
-      ;;
-    !*) "${param}";;
-    I) append "${SWAP}" 0;;
-    A) command cat >> "${SWAP}";;
-    d*) sed -i "${param}d" "${SWAP}";;
-    a*) append "${SWAP}" "${param}";;
-    w) cp "${SWAP}" "${FILE}";;
-    u) cp "${SWAP}.bkp" "${SWAP}";;
-    e*) close && edit_file "${param}";;
-    f) echo "$(pwd)/$FILE";;
-    *) printf '?\n';;
+  p) cat -n "${SWAP}" && printf "EOF\n" ;;
+  p*) sed -n "${param}p" "${SWAP}" ;;
+  /*) [[ $param != "" ]] && grep -in "${param}" "${SWAP}" ;;
+  c*)
+    sed -n "${param}p" "${SWAP}"
+    append "${SWAP}" "${param}"
+    sed -i "${param}d" "${SWAP}"
+    ;;
+  !*) "${param}" ;;
+  I) append "${SWAP}" 0 ;;
+  A) command cat >>"${SWAP}" ;;
+  d*) sed -i "${param}d" "${SWAP}" ;;
+  a*) append "${SWAP}" "${param}" ;;
+  w) cp "${SWAP}" "${FILE}" ;;
+  u) cp "${SWAP}.bkp" "${SWAP}" ;;
+  e*) close && edit_file "${param}" ;;
+  f) echo "$(pwd)/$FILE" ;;
+  *) printf '?\n' ;;
   esac
 }
 
-function edit_file(){
-  trap '' 2
+function initialize_file() {
   FILE="${1/ /}"
   [[ -z "$FILE" ]] && close && exit 0
   SWAP="${FILE}.swp"
-  if [[ -f "${FILE}" ]]; then
-    cp "${FILE}" "${SWAP}"
-  else
-    touch "${SWAP}"
-  fi
+  [[ -f "${FILE}" ]] && cp "${FILE}" "${SWAP}" || touch "${SWAP}"
 }
 
-main(){
-  [[ -f $HOME/.melrc ]] && source "$HOME/.melrc"
-  
-  edit_file "$@"
+main() {
+
+  initialize_file "$@"
 
   while true; do
     read -rp ":" action
-    local param
     param=${action:1}
     [[ $(check_action "$action" "$param") == "0" ]] && printf "?\n" && continue
     do_action "${action}" "${param}"
