@@ -1,5 +1,6 @@
 # mel
-Mel Text Edtitor
+
+Basic bash implementation of the ed text editor.
 
 ## Installing 
 
