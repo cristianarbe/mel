@@ -6,6 +6,7 @@ Ed-like editor written in posix-compliant shell.
 
 ### Prerequisites
 
+- `git`
 - A POSIX-compliant shell
 
 ### Installing
@@ -13,8 +14,9 @@ Ed-like editor written in posix-compliant shell.
 To use mel:
 
 ```
-$ test ! -d ~/.local/bin && mkdir -p ~/.local/bin/
-$ wget https://raw.githubusercontent.com/cristianarbe/mel/master/mel -O ~/.local/bin/mel
+$ git clone https://github.com/cristianarbe/mel.git
+$ cd mel
+$ make install
 ```
 
 If after this, you get
