@@ -1,20 +1,17 @@
-# Mel
+# mel
 
-Ed-like editor written in posix-compliant shell.
+Ed-like editor written in POSIX shell.
 
-## Getting Started
+## Why
 
-### Prerequisites
+Because I wanted to see whether you can make a functional text editor by only using POSIX shell commands. Also, because you can have an editor wherever there is a shell.
 
-- `git`
-- A POSIX-compliant shell
+## Installing
 
-### Installing
-
-To use mel:
+To use `mel`:
 
 ```
-$ git clone https://github.com/cristianarbe/mel.git
+$ git clone https://github.com/cristianrz/mel.git
 $ cd mel
 $ make install
 ```
@@ -22,7 +19,7 @@ $ make install
 If after this, you get
 
 ```
-bash: mel: command not found
+mel: command not found
 ```
 
 Add `.local/bin` to your path with:
@@ -36,20 +33,19 @@ $ . ~/.bashrc
 
 ### Available commands
 
-* `p`: print the whole file
-* `p N`: print line N
-* `/ WORD`: search for WORD
-* `c N`: change line number N
-* `! COMMAND`: run COMMAND in the shell
-* `a`: appends to the end of the file
-* `a N`: inserts line(s) after line N
-* `d N`: deletes line N
-* `u`: undo last change
-* `w`: saves
-* `wq`: saves and quits
-* `q`: quits
-* `e FILE`: closes the current file (without saving) and opens FILE
-* `f`: shows the path of the open file
+- `! [COMMAND]`: run COMMAND in the shell
+- `/ [PATTERN]`: search for PATTERN in the file
+- `a [#LINE]`: insert line(s) after #LINE
+- `a`: appends to the end of the file
+- `c [#LINE]`: change #LINE
+- `d [#LINE]`: delete #LINE
+- `e [FILE]`: close the current file (without saving) and opens FILE
+- `p [#LINE]`: print LINE
+- `p`: print the whole file
+- `q`: quits
+- `u`: undo last change
+- `w`: save
+- `wq`: save and quit
 
 ### Editing
 
@@ -59,12 +55,11 @@ For the commands that require text input:
 2. After the last line is written, press enter again.
 3. Press `Ctrl+D` to finish the text input.
 
-
 ## Authors
 
-- **Cristian Ariza** - _Initial work_ - [cristianarbe](https://github.com/cristianarbe)
+- **Cristian Ariza** - _Initial work_ - [cristianrz](https://github.com/cristianrz)
 
-See also the list of [contributors](https://github.com/cristianarbe/mel/contributors) who participated in this project.
+See also the list of [contributors](https://github.com/cristianrz/mel/contributors) who participated in this project.
 
 ## License
 
