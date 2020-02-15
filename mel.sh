@@ -19,57 +19,50 @@ _print() {
 		done < "$SWAP"
 		echo 'EOF'
 		;;
+	"-n") tail -n 1 "$SWAP" ;;
 	*) sed -n "$1"p "$SWAP" ;;
 	esac
 }
 
-# Processes user commands
-parse() {
-	if test "$#" -lt 1; then
-		return 0
-	fi
+change(){ add "$@" | sed "$1"d; }
 
+# Processes user commands
+meleval() {
 	cmd="$1" && shift
 	case "$cmd" in
-	p) _print "$@" ;;
-	/) grep -n "$@" "$SWAP" ;;
-	a | c)
+	':a' | ':c')
+		if test "$#" -ge 1; then
+			n="$1" && shift
+		fi
+
 		case "$cmd" in
 		c) cmd="change" ;;
-		a) cmd="add" ;;
+		*) cmd="add" ;;
 		esac
 
-		case "$#" in
-		0)
-			n='-a'
-			tail -n 1 "$SWAP"
-			;;
-		1)
-			n="$1" && shift
-			sed -n "$n"p "$SWAP"
-			;;
-		esac
-
+		# If n is empty or unset, use -n as its value.
+		_print "${n:-'-n'}"
 		cat "$SWAP" > "$BKP"
-		"$cmd" "$n" "$(cat)" "$BKP" > "$SWAP"
+		"$cmd" "${n:-'-n'}" "$(cat)" "$BKP" > "$SWAP"
 		;;
-	!) "$@" ;; # Shell commands
-	d) sed -i "$1"d "$SWAP" ;; # Deletes a line
-	w) cat "$SWAP" > "$ORIG" ;; # Saves the file
-	wq)
-		# Saves and exits
-		cat "$SWAP" > "$ORIG"
-		exit 0
-		;;
-	u) cat "$BKP" > "$SWAP" ;; # Undoes last change
-	q) exit 0 ;;
-	e)
+	':d') sed -i "$1"d "$SWAP" ;; # Deletes a line
+	':e')
 		# Edit another file
 		mv "$SWAP" "$BKP"
 		exec "$0" "$@"
 		;;
-	f) printf '%s/%s\n' "$(pwd)" "$ORIG" ;; # Shows path of current file
+	':f') printf '%s/%s\n' "$(pwd)" "$ORIG" ;; # Shows path of current file
+	':p') _print "$@" ;;
+	':q') exit 0 ;;
+	':w' | ':wq') cat "$SWAP" > "$ORIG" ;; # Saves the file
+	u) cat "$BKP" > "$SWAP" ;; # Undoes last change
+	/) grep -n "$@" "$SWAP" ;;
+	!) "$@" ;; # Shell commands
 	*) printf "The %s command is unknown\\n" "$cmd" ;;
+	esac
+
+	case "$cmd" in
+	':q' | ':wq' ) exit 0 ;;
 	esac
 }
 
@@ -102,7 +95,11 @@ cat "$ORIG" > "$SWAP"
 trap 'rm "$SWAP"' EXIT
 
 while true; do
-	printf ":" && read -r input
+	read -r input
+	if test "${#input}" -eq 1; then
+		continue
+	fi
+
 	eval "set -- $input"
-	parse "$@"
+	meleval "$@"
 done
