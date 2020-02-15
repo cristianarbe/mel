@@ -1,8 +1,15 @@
-default:
+PREFIX = .
+LIBS = change add
+
+all: $(LIBS) mel
 
 install:
-	shellcheck mel -x -e 1090
-	mkdir -p ~/.local/bin/
-	rm -rf ~/.local/bin/mel
-	cp mel ~/.local/bin/
-	chmod +x ~/.local/bin/mel
+	@mkdir -p $(PREFIX)/bin $(PREFIX)/lib/mel
+	@mv mel $(PREFIX)/bin
+	@mv $(LIBS) $(PREFIX)/lib/mel
+
+uninstall:
+	@rm -rf $(PREFIX)/bin/mel $(PREFIX)/lib/mel
+
+clean:
+	@rm -f mel $(LIBS)
