@@ -1,13 +1,11 @@
-PREFIX = .
+PREFIX = /usr/local
 
-all: mel
+all:
 
 install:
 	@mkdir -p $(PREFIX)/bin
-	@mv mel $(PREFIX)/bin
+	@cp mel $(PREFIX)/bin
+	@chmod +x $(PREFIX)/bin/mel
 
 uninstall:
 	@rm -rf $(PREFIX)/bin/mel 
-
-clean:
-	@rm -f mel 
