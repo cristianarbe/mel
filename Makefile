@@ -1,15 +1,13 @@
 PREFIX = .
-LIBS = change add
 
-all: $(LIBS) mel
+all: mel
 
 install:
-	@mkdir -p $(PREFIX)/bin $(PREFIX)/lib/mel
+	@mkdir -p $(PREFIX)/bin
 	@mv mel $(PREFIX)/bin
-	@mv $(LIBS) $(PREFIX)/lib/mel
 
 uninstall:
-	@rm -rf $(PREFIX)/bin/mel $(PREFIX)/lib/mel
+	@rm -rf $(PREFIX)/bin/mel 
 
 clean:
-	@rm -f mel $(LIBS)
+	@rm -f mel 

@@ -9,6 +9,26 @@
 # Functions
 ###########
 
+add() {
+	n="$1" && shift
+	text="$1" && shift
+
+	swp="$(cat "$@")"
+
+	# If swp is not empty, add a newline to it
+	swp="${swp:+"$swp"\\n}"
+
+	case "$n" in
+	"-a") printf '%s%s\n' "$swp" "$text" ;;
+	0) printf '%s\n%s' "$text" "$swp" ;;
+	*)
+		printf '%s' "$swp" | sed -n 1,"$n"p
+		printf '%s\n' "$text"
+		printf '%s' "$swp" | sed -n "$((n + 1))",\$p
+		;;
+	esac
+}
+
 _print() {
 	case "$#" in
 	0)
@@ -24,7 +44,7 @@ _print() {
 	esac
 }
 
-change(){ add "$@" | sed "$1"d; }
+change() { add "$@" | sed "$1"d; }
 
 # Processes user commands
 meleval() {
@@ -52,23 +72,25 @@ meleval() {
 		exec "$0" "$@"
 		;;
 	':f') printf '%s/%s\n' "$(pwd)" "$ORIG" ;; # Shows path of current file
-	':p') _print "$@" ;;
 	':q') exit 0 ;;
 	':w' | ':wq') cat "$SWAP" > "$ORIG" ;; # Saves the file
+	p) _print "$@" ;;
 	u) cat "$BKP" > "$SWAP" ;; # Undoes last change
 	/) grep -n "$@" "$SWAP" ;;
 	!) "$@" ;; # Shell commands
-	*) printf "The %s command is unknown\\n" "$cmd" ;;
+	*) printf 'The %s command is unknown\n' "$cmd" ;;
 	esac
 
 	case "$cmd" in
-	':q' | ':wq' ) exit 0 ;;
+	':q' | ':wq') exit 0 ;;
 	esac
 }
 
+set -x
+
 usage="mel v0.0.1 (C) Cristian Ariza
 	
-usage: %s [OPTIONS] [FILE]
+usage: $(basename "$0") [OPTIONS] [FILE]
 
 	-H  List available features"
 
@@ -79,11 +101,10 @@ DIR="$(
 	cd "$(dirname "$0")" || exit 1
 	pwd
 )"
-PREFIX="$DIR"/..
-export PATH="$PREFIX"/lib/mel:"$PATH"
+export PATH="$DIR"/../lib/mel:"$PATH"
 
-if test "$#" -ne 1 || test "$1" = "--help" || test ! -f  "$1"; then
-	printf "%s\\n" "$usage"
+if test "$#" -ne 1 || test "$1" = "--help" || test ! -f "$1"; then
+	printf '%s\n' "$usage"
 	exit 1
 fi
 
@@ -96,7 +117,7 @@ trap 'rm "$SWAP"' EXIT
 
 while true; do
 	read -r input
-	if test "${#input}" -eq 1; then
+	if test "${#input}" -eq 0; then
 		continue
 	fi
 
