@@ -118,7 +118,7 @@ cat "$ORIG" > "$SWAP"
 
 trap 'rm "$SWAP"' EXIT
 
-while true; do
+while : ; do
 	printf '%s> ' "$PROMPT"
 	read -r input
 	if test "${#input}" -eq 0; then
