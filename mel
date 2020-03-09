@@ -15,15 +15,17 @@ add() {
 
 	swp="$(cat "$@")"
 
-	case "$n" in
-	"-a")
-		if test -z "$swp"; then
-			printf "%s\\n" "$text"
+	case "x$n" in
+	x-a)
+		if [ -z "$swp" ]; then
+			printf '%s\n' "$text"
 		else
-			printf "%s\\n%s\\n" "$swp" "$text"
+			printf '%s\n%s\n' "$swp" "$text"
 		fi
 		;;
-	0) printf "%s\\n%s" "$text" "$swp" ;;
+	x0)
+		printf '%s\n%s' "$text" "$swp"
+		;;
 	*)
 		printf '%s' "$swp" | sed -n 1,"$n"p
 		printf '%s\n' "$text"
@@ -33,14 +35,14 @@ add() {
 }
 
 _print() {
-	if test "$#" -eq 0; then
+	if [ "$#" -eq 0 ]; then
 		i=1
 		while read -r line; do
 			printf '%s | %s\n' "$i" "$line"
 			i=$((i + 1))
-		done < "$SWAP"
+		done <"$SWAP"
 		echo 'EOF'
-	elif test "$1" = '-a'; then
+	elif [ "$1" = "-a" ]; then
 		tail -n 1 "$SWAP"
 	else
 		echo 'here'
@@ -55,7 +57,7 @@ meleval() {
 	cmd="$1" && shift
 	case "$cmd" in
 	a | c)
-		if test "$#" -ge 1; then
+		if [ "$#" -gt 0 ]; then
 			n="$1" && shift
 		fi
 
@@ -66,8 +68,8 @@ meleval() {
 
 		# If n is empty or unset, use -a as its value.
 		_print "${n:--a}"
-		cat "$SWAP" > "$BKP"
-		"$cmd" "${n:--a}" "$(cat)" "$BKP" > "$SWAP"
+		cat "$SWAP" >"$BKP"
+		"$cmd" "${n:--a}" "$(cat)" "$BKP" >"$SWAP"
 		;;
 	d) sed -i "$1"d "$SWAP" ;; # Deletes a line
 	*e)
@@ -75,9 +77,9 @@ meleval() {
 		mv "$SWAP" "$BKP"
 		exec "$0" "$@"
 		;;
-	*w | *wq) cat "$SWAP" > "$ORIG" ;; # Saves the file
+	*w | *wq) cat "$SWAP" >"$ORIG" ;; # Saves the file
 	p) _print "$@" ;;
-	u) cat "$BKP" > "$SWAP" ;; # Undoes last change
+	u) cat "$BKP" >"$SWAP" ;; # Undoes last change
 	/) grep -n "$@" "$SWAP" ;;
 	*!) "$@" ;; # Shell commands
 	*q | exit | quit) ;;
@@ -114,11 +116,11 @@ SWAP=."$1".melswp
 BKP=."$1".melbkp
 PROMPT="$(basename "$ORIG")"
 
-cat "$ORIG" > "$SWAP"
+cat "$ORIG" >"$SWAP"
 
 trap 'rm "$SWAP"' EXIT
 
-while : ; do
+while :; do
 	printf '%s> ' "$PROMPT"
 	read -r input
 	if test "${#input}" -eq 0; then
